@@ -5,11 +5,9 @@ RUN apk update && apk add --update --no-cache \
     git \
     bash \
     curl \
-    openssh \
     python3 \
     py3-pip \
     py-cryptography \
-    wget \
     curl \
     jq \
     ca-certificates && \

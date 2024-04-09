@@ -12,16 +12,18 @@ spec:
         spec:
           serviceAccountName: ecr-token-updater-svca
           containers:
-          - name: aws-cli
-            image: 00000000000.dkr.ecr.us-west-2.amazonaws.com/aws-ecr-credential-helper:v0.1.0
+          - name: aws-ecr-credential-helper
+            image: 728168703404.dkr.ecr.us-west-2.amazonaws.com/aws-ecr-credential-helper:v0.1.0
             env:
             - name: AWS_REGION
               value: "us-west-2"
             - name: AWS_ACCOUNT_ID
-              value: "00000000000"
+              value: "728168703404"
             - name: NAMESPACES
-              value: ("kube-system" "secretproject" "amazon-cloudwatch")
+              value: ("kube-system" "manchester" "amazon-cloudwatch")
           restartPolicy: OnFailure
+          imagePullSecrets:
+          - name: regcred
 ---
 apiVersion: v1
 kind: ServiceAccount

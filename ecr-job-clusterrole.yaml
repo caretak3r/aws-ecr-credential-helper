@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr-token-updater-svca
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: role-full-access-to-secrets
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["regcred"] # Replace with your desired ECR token secret name
+  verbs: ["get", "create", "delete"]
+- apiGroups: [""]
+  resources: ["seviceaccounts"]
+  verbs: ["get", "patch"]
+- apiGroups: [""]
+  resources: ["namespace"]
+  verbs: ["get", "list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: default-clusterRole-binding
+subjects:
+- kind: ServiceAccount
+  name: ecr-token-updater-svca
+  namespace: default
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: role-full-access-to-secrets # Replace with your role name if different
+  apiGroup: ""
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecr-token-refresh
+  namespace: default
+spec:
+  schedule: "*/3 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: ecr-token-updater-svca
+          containers:
+          - name: aws-ecr-credential-helper
+            image: 728168703404.dkr.ecr.us-west-2.amazonaws.com/aws-ecr-credential-helper:v0.1.0
+            env:
+            - name: AWS_REGION
+              value: "us-west-2"
+            - name: AWS_ACCOUNT_ID
+              value: "728168703404"
+            - name: NAMESPACES
+              value: kube-system,manchester,amazon-cloudwatch
+          restartPolicy: OnFailure
+          imagePullSecrets:
+          - name: regcred
+---

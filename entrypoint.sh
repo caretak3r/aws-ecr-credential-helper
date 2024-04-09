@@ -2,6 +2,8 @@
 set -x
 set -v
 
+SECRET_NAME="regcred"
+
 create_secret() {
     local namespace=$1
     kubectl create secret docker-registry regcred \
@@ -18,10 +20,11 @@ IFS=',' read -r -a NAMESPACES <<< "${NAMESPACES}"
 # Loop through each namespace and update the secret
 for NS in "${NAMESPACES[@]}"; do
   # Check if the secret exists in the namespace
+  # --ignore-not-found "${SECRET_NAME}" || true
   if kubectl get secret regcred --namespace "${NS}" &> /dev/null; then
     echo "Secret regcred exists in ${NS}, deleting and recreating it..."
     # If it exists, delete it
-    kubectl delete secret regcred --namespace "${NS}"
+    kubectl delete secret --ignore-not-found regcred --namespace "${NS}"
   else
     echo "Secret regcred does not exist in ${NS}, creating it..."
   fi

@@ -3,6 +3,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: ecr-token-updater-svca
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -10,15 +11,16 @@ metadata:
   name: role-full-access-to-secrets
 rules:
 - apiGroups: [""]
-  resources: ["secrets"]
-  resourceNames: ["regcred"] # Replace with your desired ECR token secret name
-  verbs: ["get", "create", "delete"]
-- apiGroups: [""]
-  resources: ["seviceaccounts"]
-  verbs: ["get", "patch"]
-- apiGroups: [""]
-  resources: ["namespace"]
-  verbs: ["get", "list"]
+  resources: ["secrets", "namespaces"]
+  verbs: ["*"]
+# - apiGroups: [""]
+#   resources: ["secrets"]
+#   resourceNames: ["regcred"] # Replace with your desired ECR token secret name
+#   verbs: ["get", "create", "delete"]
+# - apiGroups: [""]
+#   resources: ["namespace"]
+#   resourceNames: ["default","kube-system","manchester","amazon-cloudwatch"]
+#   verbs: ["get", "list", "update"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -40,7 +42,7 @@ metadata:
   name: ecr-token-refresh
   namespace: default
 spec:
-  schedule: "*/3 * * * *"
+  schedule: "*/1 * * * *"
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
